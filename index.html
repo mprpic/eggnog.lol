@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aged Eggnog Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5016 50%, #8b2424 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2d1b00;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fefaf5;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8b2424 0%, #a83232 100%);
+            color: #fff;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '❄';
+            position: absolute;
+            font-size: 100px;
+            opacity: 0.1;
+            top: -20px;
+            left: 20px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .header::after {
+            content: '❄';
+            position: absolute;
+            font-size: 80px;
+            opacity: 0.1;
+            bottom: -10px;
+            right: 30px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2d5016;
+        }
+
+        .section h2 {
+            color: #8b2424;
+            font-size: 1.5em;
+            margin: 0;
+        }
+
+        .input-mode {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #2d5016;
+            background: #fff;
+            color: #2d5016;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            background: #f0f8f0;
+        }
+
+        .mode-btn.active {
+            background: #2d5016;
+            color: #fff;
+        }
+
+        .input-group {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .input-group.active {
+            display: block;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: bold;
+            color: #2d1b00;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            flex: 1;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2d5016;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #8b2424 0%, #a83232 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 36, 36, 0.4);
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .ingredient-list {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .ingredient-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .ingredient-item:last-child {
+            border-bottom: none;
+        }
+
+        .shopping-list {
+            background: #fff9f0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #2d5016;
+        }
+
+        .shopping-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #fff;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .export-btn {
+            padding: 12px 20px;
+            background: #2d5016;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #1a472a;
+        }
+
+        .procedure {
+            background: #f0f8f0;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .procedure ol {
+            margin-left: 20px;
+        }
+
+        .procedure li {
+            margin-bottom: 10px;
+        }
+
+        .attribution {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 20px;
+            padding: 15px;
+        }
+
+        .attribution a {
+            color: #8b2424;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .attribution a:hover {
+            text-decoration: underline;
+        }
+
+        .unit-toggle {
+            display: inline-flex;
+            background: #e8e8e8;
+            border-radius: 20px;
+            padding: 3px;
+            gap: 0;
+        }
+
+        .unit-btn {
+            padding: 6px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 17px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .unit-btn.active {
+            background: #2d5016;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2d5016;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(-100px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .amount-detail {
+            font-size: 0.9em;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .section h2 {
+                font-size: 1.2em;
+            }
+
+            .unit-btn {
+                padding: 5px 12px;
+                font-size: 0.75em;
+            }
+
+            .form-row {
+                flex-wrap: wrap;
+            }
+
+            .form-row input,
+            .form-row select {
+                min-width: 0;
+            }
+
+            .form-row span {
+                flex-shrink: 0;
+            }
+
+            .shopping-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .amount-detail {
+                margin-left: 0;
+                font-size: 0.85em;
+            }
+
+            .toast {
+                left: 10px;
+                right: 10px;
+                top: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .mode-btn {
+                padding: 12px;
+                font-size: 0.9em;
+            }
+
+            .calculate-btn {
+                font-size: 1.1em;
+            }
+
+            .form-row {
+                gap: 8px;
+            }
+
+            input, select {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Eggnog Calculator</h1>
+        </div>
+
+        <div class="content">
+            <!-- Calculator Section -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>Calculate Your Recipe</h2>
+                    <div class="unit-toggle">
+                        <button class="unit-btn active" onclick="setUnitSystem('metric')">Metric</button>
+                        <button class="unit-btn" onclick="setUnitSystem('imperial')">Imperial</button>
+                    </div>
+                </div>
+
+                <div class="input-mode">
+                    <button class="mode-btn active" onclick="setInputMode('volume')">By Volume</button>
+                    <button class="mode-btn" onclick="setInputMode('bottles')">By Bottles</button>
+                </div>
+
+                <div class="input-group active" id="volume-input">
+                    <label>Desired Final Volume:</label>
+                    <div class="form-row">
+                        <input type="number" id="volume-amount" placeholder="3.6" step="0.1" min="0.1">
+                        <select id="volume-unit">
+                            <option value="liters">Liters</option>
+                            <option value="milliliters">Milliliters</option>
+                            <option value="gallons">Gallons</option>
+                            <option value="quarts">Quarts</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group" id="bottles-input">
+                    <label>Number of Bottles:</label>
+                    <div class="form-row">
+                        <input type="number" id="bottle-count" placeholder="6" min="1">
+                        <span>×</span>
+                        <input type="number" id="bottle-volume" placeholder="500" step="50" min="1">
+                        <select id="bottle-unit">
+                            <option value="ml">ml</option>
+                            <option value="liters">Liters</option>
+                            <option value="oz">oz</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculate()">Calculate Recipe</button>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results" id="results">
+                <div class="section">
+                    <h2>Exact Ingredients Needed</h2>
+                    <div class="ingredient-list" id="ingredient-list"></div>
+                </div>
+
+                <div class="section">
+                    <h2>Shopping List</h2>
+                    <div class="shopping-list" id="shopping-list"></div>
+                    <button class="export-btn" onclick="exportToClipboard()">📋 Copy as Markdown Checklist</button>
+                </div>
+            </div>
+
+            <!-- Recipe Procedure -->
+            <div class="section">
+                <h2>Recipe Procedure</h2>
+                <div class="procedure">
+                    <ol>
+                        <li>Separate the eggs and store the whites for another use (we only use the yolks).</li>
+                        <li>Beat the egg yolks with sugar and nutmeg until the mixture lightens in color and falls off the whisk in a solid ribbon.</li>
+                        <li>Combine all dairy (half-and-half, whole milk, heavy cream), all alcohol (rum, cognac, bourbon), and salt in a separate bowl.</li>
+                        <li>Slowly beat the liquid mixture into the egg-sugar mixture.</li>
+                        <li>Transfer to a large glass jar (or multiple jars) and refrigerate.</li>
+                        <li><strong>Age for a minimum of 2 weeks.</strong> A month would be better, and 2 months better still.</li>
+                        <li>Serve in mugs or cups, topped with freshly grated nutmeg.</li>
+                    </ol>
+                    <p style="margin-top: 15px;"><strong>Note:</strong> The aging process is crucial for flavor development and food safety. The high alcohol content and aging period make this recipe safe despite using raw egg yolks.</p>
+                </div>
+            </div>
+
+            <div class="attribution">
+                Recipe based on <a href="https://altonbrown.com/recipes/aged-eggnog/" target="_blank">Alton Brown's Aged Eggnog</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Base recipe (yields approximately 2.33 liters)
+        const BASE_RECIPE = {
+            eggs: 12,
+            sugarLb: 1,
+            nutmegTsp: 1,
+            halfAndHalfMl: 473,
+            milkMl: 473,
+            creamMl: 473,
+            rumMl: 237,
+            cognacMl: 237,
+            bourbonMl: 237,
+            baseYieldMl: 2334 // includes approximate egg yolk volume (12 yolks × 17ml)
+        };
+
+        let currentUnitSystem = 'metric';
+        let currentInputMode = 'volume';
+
+        function setUnitSystem(system) {
+            currentUnitSystem = system;
+            document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update volume unit dropdown
+            const volumeUnit = document.getElementById('volume-unit');
+            if (system === 'metric') {
+                volumeUnit.innerHTML = `
+                    <option value="liters">Liters</option>
+                    <option value="milliliters">Milliliters</option>
+                `;
+            } else {
+                volumeUnit.innerHTML = `
+                    <option value="gallons">Gallons</option>
+                    <option value="quarts">Quarts</option>
+                `;
+            }
+        }
+
+        function setInputMode(mode) {
+            currentInputMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.querySelectorAll('.input-group').forEach(group => group.classList.remove('active'));
+            document.getElementById(`${mode}-input`).classList.add('active');
+        }
+
+        function convertToMl(amount, unit) {
+            const conversions = {
+                'liters': 1000,
+                'milliliters': 1,
+                'gallons': 3785.41,
+                'quarts': 946.353,
+                'ml': 1,
+                'oz': 29.5735
+            };
+            return amount * conversions[unit];
+        }
+
+        function calculate() {
+            let targetVolumeMl;
+
+            if (currentInputMode === 'volume') {
+                const amount = parseFloat(document.getElementById('volume-amount').value);
+                const unit = document.getElementById('volume-unit').value;
+
+                if (!amount || amount <= 0) {
+                    showToast('Please enter a valid volume');
+                    return;
+                }
+
+                targetVolumeMl = convertToMl(amount, unit);
+            } else {
+                const bottleCount = parseInt(document.getElementById('bottle-count').value);
+                const bottleVolume = parseFloat(document.getElementById('bottle-volume').value);
+                const bottleUnit = document.getElementById('bottle-unit').value;
+
+                if (!bottleCount || !bottleVolume || bottleCount <= 0 || bottleVolume <= 0) {
+                    showToast('Please enter valid bottle information');
+                    return;
+                }
+
+                targetVolumeMl = bottleCount * convertToMl(bottleVolume, bottleUnit);
+            }
+
+            const scaleFactor = targetVolumeMl / BASE_RECIPE.baseYieldMl;
+
+            // Calculate scaled ingredients
+            const scaled = {
+                eggs: BASE_RECIPE.eggs * scaleFactor,
+                sugarLb: BASE_RECIPE.sugarLb * scaleFactor,
+                sugarG: BASE_RECIPE.sugarLb * scaleFactor * 453.592,
+                nutmegTsp: BASE_RECIPE.nutmegTsp * scaleFactor,
+                halfAndHalfMl: BASE_RECIPE.halfAndHalfMl * scaleFactor,
+                milkMl: BASE_RECIPE.milkMl * scaleFactor,
+                creamMl: BASE_RECIPE.creamMl * scaleFactor,
+                rumMl: BASE_RECIPE.rumMl * scaleFactor,
+                cognacMl: BASE_RECIPE.cognacMl * scaleFactor,
+                bourbonMl: BASE_RECIPE.bourbonMl * scaleFactor
+            };
+
+            displayIngredients(scaled, targetVolumeMl);
+            displayShoppingList(scaled);
+
+            document.getElementById('results').classList.add('active');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function displayIngredients(scaled, targetVolumeMl) {
+            const formatVolume = (ml) => {
+                if (currentUnitSystem === 'metric') {
+                    if (ml >= 1000) {
+                        return `${(ml / 1000).toFixed(2)} L`;
+                    }
+                    return `${ml.toFixed(0)} ml`;
+                } else {
+                    const cups = ml / 236.588;
+                    const pints = ml / 473.176;
+                    const quarts = ml / 946.353;
+
+                    if (quarts >= 1) {
+                        return `${quarts.toFixed(2)} quarts`;
+                    } else if (pints >= 1) {
+                        return `${pints.toFixed(2)} pints`;
+                    } else {
+                        return `${cups.toFixed(2)} cups`;
+                    }
+                }
+            };
+
+            const formatWeight = (lb, g) => {
+                if (currentUnitSystem === 'metric') {
+                    return `${g.toFixed(0)} g`;
+                } else {
+                    if (lb >= 1) {
+                        return `${lb.toFixed(2)} lb`;
+                    } else {
+                        return `${(lb * 16).toFixed(1)} oz`;
+                    }
+                }
+            };
+
+            const html = `
+                <div class="ingredient-item"><strong>Target Volume:</strong> ${formatVolume(targetVolumeMl)}</div>
+                <div class="ingredient-item"><strong>Egg Yolks:</strong> ${scaled.eggs.toFixed(1)} (from ${scaled.eggs.toFixed(1)} eggs)</div>
+                <div class="ingredient-item"><strong>Sugar:</strong> ${formatWeight(scaled.sugarLb, scaled.sugarG)}</div>
+                <div class="ingredient-item"><strong>Nutmeg:</strong> ${scaled.nutmegTsp.toFixed(2)} tsp (freshly grated)</div>
+                <div class="ingredient-item"><strong>Half-and-Half:</strong> ${formatVolume(scaled.halfAndHalfMl)}</div>
+                <div class="ingredient-item"><strong>Whole Milk:</strong> ${formatVolume(scaled.milkMl)}</div>
+                <div class="ingredient-item"><strong>Heavy Cream:</strong> ${formatVolume(scaled.creamMl)}</div>
+                <div class="ingredient-item"><strong>Jamaican Rum:</strong> ${formatVolume(scaled.rumMl)}</div>
+                <div class="ingredient-item"><strong>Cognac:</strong> ${formatVolume(scaled.cognacMl)}</div>
+                <div class="ingredient-item"><strong>Bourbon:</strong> ${formatVolume(scaled.bourbonMl)}</div>
+                <div class="ingredient-item"><strong>Kosher Salt:</strong> ${(scaled.nutmegTsp / 4).toFixed(2)} tsp</div>
+            `;
+
+            document.getElementById('ingredient-list').innerHTML = html;
+        }
+
+        function displayShoppingList(scaled) {
+            const shopping = [];
+
+            // Eggs - by the dozen
+            const eggsNeeded = Math.ceil(scaled.eggs);
+            const dozenEggs = Math.ceil(eggsNeeded / 12);
+            shopping.push({
+                item: `Eggs`,
+                quantity: `${dozenEggs} dozen`,
+                exact: `(need ${eggsNeeded} eggs)`
+            });
+
+            // Sugar
+            if (currentUnitSystem === 'metric') {
+                const kgNeeded = scaled.sugarG / 1000;
+                const kgToBuy = Math.ceil(kgNeeded);
+                shopping.push({
+                    item: 'Sugar',
+                    quantity: `${kgToBuy} kg`,
+                    exact: `(need ${scaled.sugarG.toFixed(0)} g)`
+                });
+            } else {
+                const lbNeeded = scaled.sugarLb;
+                const lbToBuy = Math.ceil(lbNeeded);
+                shopping.push({
+                    item: 'Sugar',
+                    quantity: `${lbToBuy} lb`,
+                    exact: `(need ${lbNeeded.toFixed(2)} lb)`
+                });
+            }
+
+            // Nutmeg
+            shopping.push({
+                item: 'Whole Nutmeg',
+                quantity: '1 nutmeg (or more)',
+                exact: `(need ${scaled.nutmegTsp.toFixed(2)} tsp grated)`
+            });
+
+            // Dairy - quarts (946ml) or metric equivalent
+            const addDairy = (name, ml) => {
+                if (currentUnitSystem === 'metric') {
+                    const litersNeeded = ml / 1000;
+                    const litersToBuy = Math.ceil(litersNeeded);
+                    shopping.push({
+                        item: name,
+                        quantity: `${litersToBuy} L`,
+                        exact: `(need ${ml.toFixed(0)} ml)`
+                    });
+                } else {
+                    const quartsNeeded = ml / 946.353;
+                    const quartsToBuy = Math.ceil(quartsNeeded);
+                    shopping.push({
+                        item: name,
+                        quantity: `${quartsToBuy} quart${quartsToBuy > 1 ? 's' : ''}`,
+                        exact: `(need ${(ml / 473.176).toFixed(2)} pints)`
+                    });
+                }
+            };
+
+            addDairy('Half-and-Half', scaled.halfAndHalfMl);
+            addDairy('Whole Milk', scaled.milkMl);
+            addDairy('Heavy Cream', scaled.creamMl);
+
+            // Alcohol - 750ml bottles
+            const addAlcohol = (name, ml) => {
+                const bottlesNeeded = Math.ceil(ml / 750);
+                shopping.push({
+                    item: name,
+                    quantity: `${bottlesNeeded} × 750ml bottle${bottlesNeeded > 1 ? 's' : ''}`,
+                    exact: `(need ${ml.toFixed(0)} ml)`
+                });
+            };
+
+            addAlcohol('Jamaican Rum', scaled.rumMl);
+            addAlcohol('Cognac', scaled.cognacMl);
+            addAlcohol('Bourbon', scaled.bourbonMl);
+
+            // Render shopping list
+            let html = '';
+            shopping.forEach(item => {
+                html += `
+                    <div class="shopping-item">
+                        <span><strong>${item.item}:</strong> ${item.quantity}</span>
+                        <span class="amount-detail">${item.exact}</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('shopping-list').innerHTML = html;
+            window.currentShoppingList = shopping; // Store for export
+        }
+
+        function exportToClipboard() {
+            let markdown = '# Aged Eggnog Shopping List\n\n';
+            window.currentShoppingList.forEach(item => {
+                markdown += `- [ ] ${item.item}: ${item.quantity} ${item.exact}\n`;
+            });
+            navigator.clipboard.writeText(markdown).then(() => {
+                showToast('Shopping list copied to clipboard!');
+            }).catch(err => {
+                showToast('Failed to copy to clipboard');
+                console.error(err);
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
