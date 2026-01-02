@@ -417,10 +417,6 @@
             <div class="section">
                 <div class="section-header">
                     <h2>Calculate Your Recipe</h2>
-                    <div class="unit-toggle">
-                        <button class="unit-btn active" onclick="setUnitSystem('metric')">Metric</button>
-                        <button class="unit-btn" onclick="setUnitSystem('imperial')">Imperial</button>
-                    </div>
                 </div>
 
                 <div class="input-mode">
@@ -437,6 +433,7 @@
                             <option value="milliliters">Milliliters</option>
                             <option value="gallons">Gallons</option>
                             <option value="quarts">Quarts</option>
+                            <option value="cups">Cups</option>
                         </select>
                     </div>
                 </div>
@@ -461,7 +458,13 @@
             <!-- Results Section -->
             <div class="results" id="results">
                 <div class="section">
-                    <h2>Exact Ingredients Needed</h2>
+                    <div class="section-header">
+                        <h2>Exact Ingredients Needed</h2>
+                        <div class="unit-toggle">
+                            <button class="unit-btn active" onclick="setOutputUnitSystem('metric')">Metric</button>
+                            <button class="unit-btn" onclick="setOutputUnitSystem('imperial')">Imperial</button>
+                        </div>
+                    </div>
                     <div class="ingredient-list" id="ingredient-list"></div>
                 </div>
 
@@ -509,29 +512,23 @@
             rumMl: 237,
             cognacMl: 237,
             bourbonMl: 237,
-            baseYieldMl: 2334 // includes approximate egg yolk volume (12 yolks × 17ml)
+            baseYieldMl: 2619 // includes egg yolk volume (12 × 17ml = 204ml) + sugar volume (453.6g ÷ 1.59 g/ml ≈ 285ml)
         };
 
-        let currentUnitSystem = 'metric';
+        let outputUnitSystem = 'metric';
         let currentInputMode = 'volume';
+        let currentScaled = null;
+        let currentTargetVolumeMl = null;
 
-        function setUnitSystem(system) {
-            currentUnitSystem = system;
+        function setOutputUnitSystem(system) {
+            outputUnitSystem = system;
             document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // Update volume unit dropdown
-            const volumeUnit = document.getElementById('volume-unit');
-            if (system === 'metric') {
-                volumeUnit.innerHTML = `
-                    <option value="liters">Liters</option>
-                    <option value="milliliters">Milliliters</option>
-                `;
-            } else {
-                volumeUnit.innerHTML = `
-                    <option value="gallons">Gallons</option>
-                    <option value="quarts">Quarts</option>
-                `;
+            // Re-render results if they exist
+            if (currentScaled && currentTargetVolumeMl) {
+                displayIngredients(currentScaled, currentTargetVolumeMl);
+                displayShoppingList(currentScaled);
             }
         }
 
@@ -550,6 +547,7 @@
                 'milliliters': 1,
                 'gallons': 3785.41,
                 'quarts': 946.353,
+                'cups': 236.588,
                 'ml': 1,
                 'oz': 29.5735
             };
@@ -598,6 +596,10 @@
                 bourbonMl: BASE_RECIPE.bourbonMl * scaleFactor
             };
 
+            // Store globally for unit toggle re-rendering
+            currentScaled = scaled;
+            currentTargetVolumeMl = targetVolumeMl;
+
             displayIngredients(scaled, targetVolumeMl);
             displayShoppingList(scaled);
 
@@ -607,7 +609,7 @@
 
         function displayIngredients(scaled, targetVolumeMl) {
             const formatVolume = (ml) => {
-                if (currentUnitSystem === 'metric') {
+                if (outputUnitSystem === 'metric') {
                     if (ml >= 1000) {
                         return `${(ml / 1000).toFixed(2)} L`;
                     }
@@ -628,7 +630,7 @@
             };
 
             const formatWeight = (lb, g) => {
-                if (currentUnitSystem === 'metric') {
+                if (outputUnitSystem === 'metric') {
                     return `${g.toFixed(0)} g`;
                 } else {
                     if (lb >= 1) {
@@ -669,7 +671,7 @@
             });
 
             // Sugar
-            if (currentUnitSystem === 'metric') {
+            if (outputUnitSystem === 'metric') {
                 const kgNeeded = scaled.sugarG / 1000;
                 const kgToBuy = Math.ceil(kgNeeded);
                 shopping.push({
@@ -696,7 +698,7 @@
 
             // Dairy - quarts (946ml) or metric equivalent
             const addDairy = (name, ml) => {
-                if (currentUnitSystem === 'metric') {
+                if (outputUnitSystem === 'metric') {
                     const litersNeeded = ml / 1000;
                     const litersToBuy = Math.ceil(litersNeeded);
                     shopping.push({
