@@ -488,33 +488,42 @@ input[aria-invalid="true"] { border-color: var(--red); background: #FBE9DF; }
 /* Shopping list */
 .shopping { container-type: inline-size; }
 .shop { list-style: none; margin: 0 0 1.25rem; padding: 0; }
-.shop li {
+.shop li { border-bottom: 1.5px dashed rgba(28, 48, 46, .3); }
+.shop label {
     display: grid;
     grid-template-columns: 1.15rem 1fr auto;
     column-gap: .7rem;
     align-items: baseline;
     padding: .5rem 0;
-    border-bottom: 1.5px dashed rgba(28, 48, 46, .3);
+    cursor: pointer;
 }
-.shop .box {
+.shop input {
+    -webkit-appearance: none;
+    appearance: none;
     width: 1.05rem;
     height: 1.05rem;
+    margin: 0;
     background: var(--white);
     border: 2px solid var(--ink);
     border-radius: 3px;
     transform: translateY(.14em);
+    cursor: pointer;
 }
+.shop input:checked {
+    background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.5l2.5 2.5 4.5-6' fill='none' stroke='%23FAF2DD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
+}
+.shop label:has(input:checked) span { opacity: .55; text-decoration: line-through; }
 .shop .item { font-weight: 600; }
 .shop .qty { font-weight: 700; text-align: right; }
 .shop .exact { grid-column: 2 / -1; font-size: .92rem; color: var(--muted); }
 @container (max-width: 22rem) {
-    .shop li { font-size: 1rem; grid-template-columns: 1.05rem 1fr auto; column-gap: .45rem; }
+    .shop label { font-size: 1rem; grid-template-columns: 1.05rem 1fr auto; column-gap: .45rem; }
     .shop .item { white-space: nowrap; }
     .shop .qty { font-size: .95rem; }
     .shop .exact { font-size: .88rem; }
 }
 @container (min-width: 30.5rem) {
-    .shop li { grid-template-columns: 1.15rem 8.5rem 1fr auto; column-gap: .6rem; }
+    .shop label { grid-template-columns: 1.15rem 8.5rem 1fr auto; column-gap: .6rem; }
     .shop .item { white-space: nowrap; }
     .shop .qty { text-align: left; }
     .shop .exact { grid-column: auto; text-align: right; }
@@ -1319,6 +1328,8 @@ function shoppingListMarkdown(items) {
     };
     let shopping = [];
     let statusTimer;
+    // Ticked shopping items, kept here because every redraw rebuilds the list.
+    const bought = new Set();
 
     const TIPS = {
         Sugar: 'Do not cut the sugar. It binds water, adds body and softens what the alcohol does to the egg proteins.',
@@ -1407,7 +1418,7 @@ function shoppingListMarkdown(items) {
         $('shopping-list').innerHTML = shopping
             .map(
                 (i) =>
-                    `<li><span class="box" aria-hidden="true"></span><span class="item">${i.item}</span><span class="qty">${i.quantity}</span><span class="exact">${i.exact}</span></li>`,
+                    `<li><label><input type="checkbox" value="${i.item}"${bought.has(i.item) ? ' checked' : ''}><span class="item">${i.item}</span><span class="qty">${i.quantity}</span><span class="exact">${i.exact}</span></label></li>`,
             )
             .join('');
     }
@@ -1496,6 +1507,10 @@ function shoppingListMarkdown(items) {
         $(id).addEventListener('change', update);
     });
     $('copy-list').addEventListener('click', copyList);
+    $('shopping-list').addEventListener('change', (event) => {
+        if (event.target.checked) bought.add(event.target.value);
+        else bought.delete(event.target.value);
+    });
 
     // Touch screens have no hover, so a tap toggles a tip and a tap anywhere else closes it.
     const closeTips = (except) =>
