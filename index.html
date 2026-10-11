@@ -68,13 +68,11 @@ body {
     position: relative;
     max-width: 70rem;
     margin: 0 auto;
-    /* The candy stripe is a background behind a transparent border: one gradient across the whole
-       box, so it meets cleanly at the corners at any border width. */
-    background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .08 .13 0 0 0 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E") padding-box,
-        linear-gradient(var(--paper) 0 0) padding-box,
-        repeating-linear-gradient(-45deg, var(--red) 0 11px, var(--paper-2) 11px 22px) border-box;
-    border: 12px solid transparent;
+    background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .08 .13 0 0 0 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+    border: 12px solid var(--red);
+    /* The candy stripe is a small tile repeated along each edge. Its 32px repeat matches the stripe
+       pitch and `round` scales it evenly, so the stripes keep their angle and meet at the corners. */
+    border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath fill='%23FAF2DD' d='M0 0h56v56H0z'/%3E%3Cpath fill='%23BF3B2B' d='M0 0h16L0 16zM32 0h16L0 48V32zM56 8v16L24 56H8zM56 40v16H40z'/%3E%3C/svg%3E") 12 round;
     box-shadow: 10px 12px 0 rgba(15, 40, 38, .45);
 }
 
