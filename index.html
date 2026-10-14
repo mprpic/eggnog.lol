@@ -376,6 +376,25 @@ select {
     text-overflow: ellipsis;
 }
 input[aria-invalid="true"] { border-color: var(--red); background: #FBE9DF; }
+/* Batch shortcuts and the note on the default */
+.batches { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.5rem; margin-top: 1.3rem; }
+.batch-btns { display: flex; align-items: center; gap: .55rem; }
+.batch-btns .label { margin: 0 .3rem 0 0; }
+.chip {
+    min-width: 3rem;
+    min-height: 2.5rem;
+    padding: .3rem .8rem;
+    font: 700 1.05rem/1 var(--sans);
+    color: var(--ink);
+    background: var(--white);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 3px 3px 0 var(--mustard);
+    cursor: pointer;
+}
+.chip:hover { background: var(--paper-2); }
+.chip:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--mustard); }
+.batch-note { flex: 1 1 18rem; margin: 0; font-size: .92rem; line-height: 1.45; color: var(--muted); }
 .hint { margin: .9rem 0 0; font-size: .95rem; font-style: italic; color: var(--red-ink); font-weight: 500; }
 
 /* Target volume: a gift tag */
@@ -734,7 +753,7 @@ footer .disclaimer { margin-top: .5rem; font-size: .88rem; color: var(--muted); 
 @media print {
     body { padding: 0; background: none; }
     .card { border: 0; box-shadow: none; background: none; max-width: none; }
-    .garland, .cover::before, .scissors, .bowl-art, .mugs-art, .copy-row, .recipe-toggle, .controls .seg, .edge { display: none !important; }
+    .garland, .cover::before, .scissors, .bowl-art, .mugs-art, .copy-row, .recipe-toggle, .controls .seg, .batch-btns, .edge { display: none !important; }
     .cover { padding-top: 0; }
     .coupon::before { -webkit-mask: none; mask: none; }
     .panel, .phase, .tl-bar, .seg-opts, .proc h3, .steps li::before { box-shadow: none; }
@@ -965,6 +984,15 @@ footer .disclaimer { margin-top: .5rem; font-size: .88rem; color: var(--muted); 
                             <label for="units-imperial">Imperial</label>
                         </div>
                     </fieldset>
+                </div>
+                <div class="batches">
+                    <div class="batch-btns" role="group" aria-labelledby="batches-label">
+                        <span class="label" id="batches-label">Batches</span>
+                        <button type="button" class="chip" data-batches="1">1×</button>
+                        <button type="button" class="chip" data-batches="2">2×</button>
+                        <button type="button" class="chip" data-batches="3">3×</button>
+                    </div>
+                    <p class="batch-note">The default is one batch of the recipe: 12 egg yolks, which makes about 2.77 quarts (2.62 liters).</p>
                 </div>
                 <p class="hint" id="batch-hint" role="status" hidden>Enter a number above zero. Showing the last batch that worked.</p>
             </div>
@@ -1290,7 +1318,7 @@ function shoppingList(scaled, unitSystem) {
     const spirit = (item, ml) => ({
         item,
         quantity: `${plural(Math.ceil(Math.round(ml) / 750), '× 750ml bottle')}`,
-        exact: `(need ${ml.toFixed(0)} ml)`,
+        exact: metric ? `(need ${ml.toFixed(0)} ml)` : `(need ${(ml / ML_PER_UNIT.cups).toFixed(2)} cups)`,
     });
     const sugarLb = scaled.sugarG / G_PER_LB;
     return [
@@ -1323,11 +1351,14 @@ function shoppingListMarkdown(items) {
         recipe: 'two-phase',
         mode: 'volume',
         units: 'imperial',
-        targetMl: convertToMl(2.77, 'quarts'),
+        targetMl: BASE_YIELD_ML,
         abv: { ...DEFAULT_ABV },
     };
     let shopping = [];
     let statusTimer;
+    // An exact batch multiple that the amount field can only show rounded. It stands in for the
+    // field for as long as the field still reads that rounded text, so 1× is exactly one batch.
+    let preset = { text: '2.77', unit: 'quarts', ml: BASE_YIELD_ML };
     // Ticked shopping items, kept here because every redraw rebuilds the list.
     const bought = new Set();
 
@@ -1348,8 +1379,14 @@ function shoppingListMarkdown(items) {
 
     function readTarget() {
         if (state.mode === 'volume') {
-            const amount = readPositive($('volume-amount'));
-            return amount === null ? null : convertToMl(amount, $('volume-unit').value);
+            const field = $('volume-amount');
+            const unit = $('volume-unit').value;
+            if (field.value === preset.text && unit === preset.unit) {
+                field.setAttribute('aria-invalid', 'false');
+                return preset.ml;
+            }
+            const amount = readPositive(field);
+            return amount === null ? null : convertToMl(amount, unit);
         }
         const count = readPositive($('bottle-count'));
         const size = readPositive($('bottle-size'));
@@ -1501,6 +1538,21 @@ function shoppingListMarkdown(items) {
         update();
     });
     onRadio('units', render);
+
+    document.querySelectorAll('[data-batches]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const unit = $('volume-unit').value;
+            const ml = Number(button.dataset.batches) * BASE_YIELD_ML;
+            preset = { text: String(Number((ml / ML_PER_UNIT[unit]).toFixed(2))), unit, ml };
+            $('volume-amount').value = preset.text;
+            if (state.mode !== 'volume') {
+                $('mode-volume').checked = true;
+                state.mode = 'volume';
+                showMode();
+            }
+            update();
+        });
+    });
 
     ['volume-amount', 'volume-unit', 'bottle-count', 'bottle-size', 'bottle-unit', 'abv-rum', 'abv-cognac', 'abv-bourbon'].forEach((id) => {
         $(id).addEventListener('input', update);
